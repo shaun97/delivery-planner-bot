@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"os"
 
 	"github.com/go-telegram/bot"
@@ -9,9 +10,10 @@ import (
 )
 
 func main() {
+
 	b, err := bot.New((os.Getenv("TELEGRAM_TOKEN")), bot.WithDefaultHandler(handler))
 	if err != nil {
-		panic(err)
+		fmt.Println(err)
 	}
 
 	b.Start(context.TODO())
