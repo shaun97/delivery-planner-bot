@@ -10,44 +10,40 @@ import (
 	"github.com/go-telegram/bot/models"
 )
 
-b, err := bot.New((os.Getenv("TELEGRAM_TOKEN")
+func main() {
+	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
+	defer cancel()
 
-b.Start(context.TODO())
+	opts := []bot.Option{
+		bot.WithDefaultHandler(handler),
+	}
 
-// Send any text message to the bot after the bot has been started
+	b, err := bot.New(os.Getenv("TELEGRAM_TOKEN"), opts...)
+	if nil != err {
+		// panics for the sake of simplicity.
+		// you should handle this error properly in your code.
+		panic(err)
+	}
 
-// func main() {
-// 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
-// 	defer cancel()
+	webhookURL := "https://yourdomain.com:2000/webhook"
+	b.SetWebhook(ctx, &bot.SetWebhookParams{
+		URL: webhookURL,
+	})
 
-// 	opts := []bot.Option{
-// 		bot.WithDefaultHandler(handler),
-// 	}
+	go func() {
+		http.ListenAndServe(":2000", b.WebhookHandler())
+	}()
 
-// 	b, err := bot.New(os.Getenv("TELEGRAM_TOKEN"), opts...)
-// 	if nil != err {
-// 		// panics for the sake of simplicity.
-// 		// you should handle this error properly in your code.
-// 		panic(err)
-// 	}
+	// Use StartWebhook instead of Start
+	b.StartWebhook(ctx)
 
-// 	b.SetWebhook(ctx, &bot.SetWebhookParams{
-// 		URL: "https://example.com/webhook",
-// 	})
+	// call methods.DeleteWebhook if needed
+	defer b.DeleteWebhook(ctx, &bot.DeleteWebhookParams{})
+}
 
-// 	go func() {
-// 		http.ListenAndServe(":2000", b.WebhookHandler())
-// 	}()
-
-// 	// Use StartWebhook instead of Start
-// 	b.StartWebhook(ctx)
-
-// 	// call methods.DeleteWebhook if needed
-// }
-
-// func handler(ctx context.Context, b *bot.Bot, update *models.Update) {
-// 	b.SendMessage(ctx, &bot.SendMessageParams{
-// 		ChatID: update.Message.Chat.ID,
-// 		Text:   update.Message.Text,
-// 	})
-// }
+func handler(ctx context.Context, b *bot.Bot, update *models.Update) {
+	b.SendMessage(ctx, &bot.SendMessageParams{
+		ChatID: update.Message.Chat.ID,
+		Text:   update.Message.Text,
+	})
+}
