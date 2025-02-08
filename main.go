@@ -9,7 +9,10 @@ import (
 )
 
 func main() {
-	b, _ := bot.New((os.Getenv("TELEGRAM_TOKEN")), bot.WithDefaultHandler(handler))
+	b, err := bot.New((os.Getenv("TELEGRAM_TOKEN")), bot.WithDefaultHandler(handler))
+	if err != nil {
+		panic(err)
+	}
 
 	b.Start(context.TODO())
 }
