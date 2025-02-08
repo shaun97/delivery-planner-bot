@@ -6,10 +6,16 @@ import (
 	"os"
 
 	"github.com/go-telegram/bot"
+	"github.com/joho/godotenv"
 	"github.com/go-telegram/bot/models"
 )
 
 func main() {
+
+	err := godotenv.Load()
+	if err != nil {
+		fmt.Println("Error loading .env file")
+	}
 
 	b, err := bot.New((os.Getenv("TELEGRAM_TOKEN")), bot.WithDefaultHandler(handler))
 	if err != nil {
