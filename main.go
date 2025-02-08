@@ -2,48 +2,18 @@ package main
 
 import (
 	"context"
-	"net/http"
 	"os"
-	"os/signal"
 
 	"github.com/go-telegram/bot"
 	"github.com/go-telegram/bot/models"
 )
 
 func main() {
-	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
-	defer cancel()
+	b, _ := bot.New((os.Getenv("TELEGRAM_TOKEN")), bot.WithDefaultHandler(handler))
 
-	opts := []bot.Option{
-		bot.WithDefaultHandler(handler),
-	}
-
-	b, err := bot.New(os.Getenv("TELEGRAM_TOKEN"), opts...)
-	if nil != err {
-		// panics for the sake of simplicity.
-		// you should handle this error properly in your code.
-		panic(err)
-	}
-
-	webhookURL := "https://yourdomain.com:2000/webhook"
-	b.SetWebhook(ctx, &bot.SetWebhookParams{
-		URL: webhookURL,
-	})
-
-	go func() {
-		http.ListenAndServe(":2000", b.WebhookHandler())
-	}()
-
-	// Use StartWebhook instead of Start
-	b.StartWebhook(ctx)
-
-	// call methods.DeleteWebhook if needed
-	defer b.DeleteWebhook(ctx, &bot.DeleteWebhookParams{})
+	b.Start(context.TODO())
 }
 
 func handler(ctx context.Context, b *bot.Bot, update *models.Update) {
-	b.SendMessage(ctx, &bot.SendMessageParams{
-		ChatID: update.Message.Chat.ID,
-		Text:   update.Message.Text,
-	})
+	print("hello world")
 }
