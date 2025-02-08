@@ -1,15 +1,25 @@
 package main
 
+import (
+	"context"
+	"net/http"
+	"os"
+	"os/signal"
+
+	"github.com/go-telegram/bot"
+	"github.com/go-telegram/bot/models"
+)
+
 func main() {
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
 	defer cancel()
 
 	opts := []bot.Option{
 		bot.WithDefaultHandler(handler),
-		bot.WithWebhookSecretToken(os.Getenv("EXAMPLE_TELEGRAM_WEBHOOK_SECRET_TOKEN"))
+		bot.WithWebhookSecretToken(os.Getenv("TELEGRAM_TOKEN")),
 	}
 
-	b, _ := bot.New(os.Getenv("EXAMPLE_TELEGRAM_BOT_TOKEN"), opts...)
+	b, _ := bot.New(os.Getenv("TELEGRAM_TOKEN"), opts...)
 
 	// call methods.SetWebhook if needed
 
