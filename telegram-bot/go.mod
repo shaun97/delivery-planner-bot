@@ -1,4 +1,4 @@
-module myproject
+module delivery-planner-bot
 
 go 1.16
 
