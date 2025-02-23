@@ -1,61 +1,75 @@
 package main
 
 import (
-    "fmt"
-    "log"
+	"context"
+	"fmt"
+	"log"
 
-    "delivery-planner-bot/backend/internal/delivery/http/handler"
-    "delivery-planner-bot/backend/internal/infrastructure/maps"
-    "delivery-planner-bot/backend/internal/usecase/route"
-    "delivery-planner-bot/backend/pkg/config"
-    "github.com/gin-gonic/gin"
+	"delivery-planner-bot/backend/internal/delivery/http/handler"
+	"delivery-planner-bot/backend/internal/infrastructure/maps"
+	"delivery-planner-bot/backend/internal/usecase/route"
+	"delivery-planner-bot/backend/pkg/config"
+
+	"github.com/gin-gonic/gin"
 )
 
 func main() {
-    // Load configuration
-    cfg, err := config.Load()
-    if err != nil {
-        log.Fatalf("Failed to load config: %v", err)
-    }
+	// Load configuration
+	cfg, err := config.Load()
+	if err != nil {
+		log.Fatalf("Failed to load config: %v", err)
+	}
+	ctx := context.Background()
 
-    // Initialize services
-    mapService, err := maps.NewGoogleMapsClient(cfg.GoogleMaps.APIKey)
-    if err != nil {
-        log.Fatalf("Failed to create maps client: %v", err)
-    }
+	// Initialize services
+	mapService, err := maps.NewGoogleRoutesClient(ctx, cfg.GoogleMaps.APIKey)
+	if err != nil {
+		log.Fatalf("Failed to create maps client: %v", err)
+	}
 
-    // Initialize use cases
-    routeService := route.NewService(nil, mapService) // TODO: Add route repository
+	geocodingService, err := maps.NewGoogleGeocodingClient(ctx, cfg.GoogleMaps.APIKey)
+	if err != nil {
+		log.Fatalf("Failed to create geocoding client: %v", err)
+	}
 
-    // Initialize HTTP handlers
-    routeHandler := handler.NewRouteHandler(routeService)
+	// Initialize use cases
+	routeService := route.NewService(nil, mapService, geocodingService) // TODO: Add route repository
 
-    // Setup Gin router
-    router := gin.Default()
+	// Initialize HTTP handlers
+	routeHandler := handler.NewRouteHandler(routeService)
 
-    // Register route handlers
-    v1 := router.Group("/api/v1")
-    {
-        routes := v1.Group("/routes")
-        {
-            routes.POST("/", routeHandler.CreateRoute)
-            routes.GET("/", routeHandler.ListRoutes)
-            routes.GET("/:id", routeHandler.GetRoute)
-            routes.PUT("/:id", routeHandler.UpdateRoute)
-            routes.DELETE("/:id", routeHandler.DeleteRoute)
-            routes.POST("/:id/optimize", routeHandler.OptimizeRoute)
-        }
+	// Setup Gin router
+	router := gin.Default()
+	fmt.Println("test")
+	// Register route handlers
+	v1 := router.Group("/api/v1")
+	{
+		routes := v1.Group("/routes")
+		{
+			routes.POST("/", routeHandler.CreateRoute)
+			routes.GET("/", routeHandler.ListRoutes)
+			routes.GET("/:id", routeHandler.GetRoute)
+			routes.PUT("/:id", routeHandler.UpdateRoute)
+			routes.DELETE("/:id", routeHandler.DeleteRoute)
+			routes.POST("/:id/optimize", routeHandler.OptimizeRoute)
+			routes.POST("/precheck", routeHandler.PreCheckRoute)
+		}
 
-        drivers := v1.Group("/drivers")
-        {
-            drivers.GET("/:driverID/routes", routeHandler.GetDriverRoutes)
-        }
-    }
+		drivers := v1.Group("/drivers")
+		{
+			drivers.GET("/:driverID/routes", routeHandler.GetDriverRoutes)
+		}
+	}
 
-    // Start server
-    addr := fmt.Sprintf(":%d", cfg.Server.Port)
-    log.Printf("Server starting on %s", addr)
-    if err := router.Run(addr); err != nil {
-        log.Fatalf("Failed to start server: %v", err)
-    }
+	// Health check endpoint
+	router.GET("/health", func(c *gin.Context) {
+		c.JSON(200, gin.H{"status": "ok"})
+	})
+
+	// Start server
+	addr := fmt.Sprintf(":%d", cfg.Server.Port)
+	log.Printf("Server starting on %s", addr)
+	if err := router.Run(addr); err != nil {
+		log.Fatalf("Failed to start server: %v", err)
+	}
 }
