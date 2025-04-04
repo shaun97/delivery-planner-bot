@@ -16,7 +16,7 @@ type UpdateRouteRequest struct {
 }
 
 // Add this type at the top of the file with other type declarations
-type PreCheckRouteRequest struct {
+type PreviewRouteRequest struct {
 	Origin      string   `json:"origin" binding:"required"`
 	Destination string   `json:"destination" binding:"required"`
 	Deliveries  []string `json:"deliveries" binding:"required"`

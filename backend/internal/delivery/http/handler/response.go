@@ -38,7 +38,7 @@ type TimeWindowDTO struct {
 	End   string `json:"end" binding:"required,datetime=2006-01-02T15:04:05Z07:00,gtfield=Start"`
 }
 
-type PreCheckRouteResponse struct {
+type PreviewRouteResponse struct {
 	Origin        string   `json:"origin"`
 	Destination   string   `json:"destination"`
 	Deliveries    []string `json:"deliveries"`

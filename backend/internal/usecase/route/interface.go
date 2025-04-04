@@ -16,8 +16,8 @@ type UseCase interface {
 	OptimizeRoute(ctx context.Context, id string) error
 	GetDriverRoutes(ctx context.Context, driverID string) ([]*entity.Route, error)
 
-	// PreCheckRoute is a method to check if the route is valid before creating it
-	PreCheckRoute(ctx context.Context, origin, destination string, deliveries []string) (*entity.Route, error)
+	// PreviewRoute is a method to check if the route is valid before creating it
+	PreviewRoute(ctx context.Context, origin, destination string, deliveries []string) (*entity.Route, error)
 }
 
 type MapService interface {

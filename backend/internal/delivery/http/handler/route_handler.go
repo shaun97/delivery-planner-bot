@@ -92,22 +92,22 @@ func (h *RouteHandler) OptimizeRoute(c *gin.Context) {
 	c.Status(http.StatusOK)
 }
 
-func (h *RouteHandler) PreCheckRoute(c *gin.Context) {
-	req := PreCheckRouteRequest{}
+func (h *RouteHandler) PreviewRoute(c *gin.Context) {
+	req := PreviewRouteRequest{}
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	route, err := h.routeUseCase.PreCheckRoute(c.Request.Context(), req.Origin, req.Destination, req.Deliveries)
+	route, err := h.routeUseCase.PreviewRoute(c.Request.Context(), req.Origin, req.Destination, req.Deliveries)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	preCheckRouteResponse := h.ToPreCheckRouteResponse(route)
+	previewRouteResponse := h.ToPreviewRouteResponse(route)
 
-	c.JSON(http.StatusOK, preCheckRouteResponse)
+	c.JSON(http.StatusOK, previewRouteResponse)
 }
 
 func (h *RouteHandler) GetDriverRoutes(c *gin.Context) {

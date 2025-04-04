@@ -3,6 +3,7 @@ package maps
 import (
 	"context"
 	"fmt"
+	"regexp"
 
 	"delivery-planner-bot/backend/internal/domain/entity"
 	"delivery-planner-bot/backend/internal/usecase/route"
@@ -32,6 +33,9 @@ func (g *googleGeocodingClient) GetCoordinates(ctx context.Context, address stri
 
 	r := &maps.GeocodingRequest{
 		Address: address,
+		Components: map[maps.Component]string{
+			maps.ComponentCountry: "SG", // Restrict to Singapore
+		},
 	}
 
 	results, err := g.client.Geocode(ctx, r)
@@ -42,9 +46,21 @@ func (g *googleGeocodingClient) GetCoordinates(ctx context.Context, address stri
 	if len(results) == 0 {
 		return nil, "", fmt.Errorf("no coordinates found for address: %s", address)
 	}
+	readableAddress := results[0].FormattedAddress
+
+	validAddressPattern := `^Singapore [0-9]{6}$`
+	matched, _ := regexp.MatchString(validAddressPattern, readableAddress)
+	if matched {
+		for _, component := range results[0].AddressComponents {
+			if component.Types[0] != "postal_code" {
+				readableAddress = fmt.Sprintf("%s, %s", component.LongName, readableAddress)
+				break
+			}
+		}
+	}
 
 	return &entity.Coordinates{
 		Latitude:  results[0].Geometry.Location.Lat,
 		Longitude: results[0].Geometry.Location.Lng,
-	}, results[0].FormattedAddress, nil
+	}, readableAddress, nil
 }

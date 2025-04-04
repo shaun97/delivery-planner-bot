@@ -52,7 +52,7 @@ func main() {
 			routes.PUT("/:id", routeHandler.UpdateRoute)
 			routes.DELETE("/:id", routeHandler.DeleteRoute)
 			routes.POST("/:id/optimize", routeHandler.OptimizeRoute)
-			routes.POST("/precheck", routeHandler.PreCheckRoute)
+			routes.POST("/preview", routeHandler.PreviewRoute)
 		}
 
 		drivers := v1.Group("/drivers")

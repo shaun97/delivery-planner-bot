@@ -57,6 +57,7 @@ func (g *googleRoutesClient) CalculateETA(ctx context.Context, origin, destinati
 		RoutingPreference:     routingpb.RoutingPreference_TRAFFIC_AWARE,
 		RouteModifiers:        &routingpb.RouteModifiers{},
 		OptimizeWaypointOrder: false,
+		RegionCode:            "SG", // Restrict to Singapore
 	}
 
 	// set the field mask
@@ -84,7 +85,7 @@ func (g *googleRoutesClient) OptimizeDeliverySequence(ctx context.Context, origi
 				Location: &routingpb.Location{
 					LatLng: &latlng.LatLng{
 						Latitude:  delivery.Coordinates.Latitude,
-						Longitude: delivery.Coordinates.Longitude,
+						Longitude: delivery.Coordinates.Longitude, //TODO use places ID will be better?
 					},
 				},
 			},
@@ -118,6 +119,7 @@ func (g *googleRoutesClient) OptimizeDeliverySequence(ctx context.Context, origi
 		RoutingPreference:     routingpb.RoutingPreference_TRAFFIC_AWARE,
 		RouteModifiers:        &routingpb.RouteModifiers{},
 		OptimizeWaypointOrder: true,
+		RegionCode:            "SG", // Restrict to Singapore
 	}
 
 	// set the field mask
@@ -135,13 +137,13 @@ func (g *googleRoutesClient) OptimizeDeliverySequence(ctx context.Context, origi
 		return nil, fmt.Errorf("no route found")
 	}
 	optimizedRoute := make([]*entity.DeliveryPoint, len(deliveries))
-	for i, idx := range respRoute.OptimizedIntermediateWaypointIndex {
-		if i < 0 {
-			optimizedRoute[i] = deliveries[i]
-		} else {
-			optimizedRoute[i] = deliveries[idx]
-		}
 
+	if len(respRoute.OptimizedIntermediateWaypointIndex) == 1 {
+		optimizedRoute[0] = deliveries[0] // case where there is only 1 intermediate
+	} else {
+		for idx, i := range respRoute.OptimizedIntermediateWaypointIndex {
+			optimizedRoute[idx] = deliveries[i]
+		}
 	}
 
 	result := &entity.Route{
@@ -150,7 +152,6 @@ func (g *googleRoutesClient) OptimizeDeliverySequence(ctx context.Context, origi
 	}
 
 	return result, nil
-
 }
 
 func (g *googleRoutesClient) BuildMapURL(origin, destination string, deliveries []*entity.DeliveryPoint) string {

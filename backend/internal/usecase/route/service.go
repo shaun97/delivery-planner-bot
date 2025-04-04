@@ -46,7 +46,7 @@ func (s *service) GetDriverRoutes(ctx context.Context, driverID string) ([]*enti
 	return s.routeRepo.FindByDriverID(ctx, driverID)
 }
 
-func (s *service) PreCheckRoute(ctx context.Context, origin, destination string, deliveries []string) (*entity.Route, error) {
+func (s *service) PreviewRoute(ctx context.Context, origin, destination string, deliveries []string) (*entity.Route, error) {
 	route, err := s.createRouteWithGeocodedAddresses(ctx, origin, destination, deliveries)
 	if err != nil {
 		return nil, err
